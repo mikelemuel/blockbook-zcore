@@ -49,6 +49,8 @@ static const CRPCConvertParam vRPCConvertParams[] =
         {"getbalance", 1},
         {"getbalance", 2},
         {"getblockhash", 0},
+        {"getblockhashes", 0},
+        {"getblockhashes", 1},
         {"move", 2},
         {"move", 3},
         {"sendfrom", 2},
@@ -141,6 +143,10 @@ static const CRPCConvertParam vRPCConvertParams[] =
         {"searchdzzcr", 1},
         {"searchdzzcr", 2},
         {"getaccumulatorvalues", 0},
+        {"getaddresstxids", 0},
+        {"getaddressbalance", 0},
+        {"getaddressmempool", 0},
+        {"getaddressutxos", 0},
         {"getfeeinfo", 0}
     };
 

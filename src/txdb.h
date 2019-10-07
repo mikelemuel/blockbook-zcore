@@ -7,7 +7,9 @@
 #ifndef BITCOIN_TXDB_H
 #define BITCOIN_TXDB_H
 
-#include "leveldbwrapper.h"
+
+
+#include "dbwrapper.h"
 #include "main.h"
 #include "primitives/zerocoin.h"
 
@@ -18,6 +20,8 @@
 
 class CCoins;
 class uint256;
+struct CTimestampIndexKey;
+struct CTimestampIndexIteratorKey;
 
 //! -dbcache default (MiB)
 static const int64_t nDefaultDbCache = 100;
@@ -30,7 +34,7 @@ static const int64_t nMinDbCache = 4;
 class CCoinsViewDB : public CCoinsView
 {
 protected:
-    CLevelDBWrapper db;
+    CDBWrapper db;
 
 public:
     CCoinsViewDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
@@ -40,10 +44,11 @@ public:
     uint256 GetBestBlock() const;
     bool BatchWrite(CCoinsMap& mapCoins, const uint256& hashBlock);
     bool GetStats(CCoinsStats& stats) const;
+
 };
 
 /** Access to the block database (blocks/index/) */
-class CBlockTreeDB : public CLevelDBWrapper
+class CBlockTreeDB : public CDBWrapper
 {
 public:
     CBlockTreeDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
@@ -67,10 +72,23 @@ public:
     bool WriteInt(const std::string& name, int nValue);
     bool ReadInt(const std::string& name, int& nValue);
     bool LoadBlockIndexGuts();
+    bool WriteTimestampIndex(const CTimestampIndexKey &timestampIndex);
+    bool ReadTimestampIndex(const unsigned int &high, const unsigned int &low, std::vector<uint256> &vect);
+    bool UpdateAddressUnspentIndex(const std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue > >&vect);
+    bool ReadAddressUnspentIndex(uint160 addressHash, int type,
+                                 std::vector<std::pair<CAddressUnspentKey, CAddressUnspentValue> > &vect);
+    bool WriteAddressIndex(const std::vector<std::pair<CAddressIndexKey, CAmount> > &vect);
+    bool EraseAddressIndex(const std::vector<std::pair<CAddressIndexKey, CAmount> > &vect);
+    bool ReadAddressIndex(uint160 addressHash, int type,
+                          std::vector<std::pair<CAddressIndexKey, CAmount> > &addressIndex,
+                          int start = 0, int end = 0);
+
+    bool ReadSpentIndex(CSpentIndexKey &key, CSpentIndexValue &value);
+    bool UpdateSpentIndex(const std::vector<std::pair<CSpentIndexKey, CSpentIndexValue> >&vect);
 };
 
 /** Zerocoin database (zerocoin/) */
-class CZerocoinDB : public CLevelDBWrapper
+class CZerocoinDB : public CDBWrapper
 {
 public:
     CZerocoinDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
@@ -94,6 +112,7 @@ public:
     bool WriteAccumulatorValue(const uint32_t& nChecksum, const CBigNum& bnValue);
     bool ReadAccumulatorValue(const uint32_t& nChecksum, CBigNum& bnValue);
     bool EraseAccumulatorValue(const uint32_t& nChecksum);
+
 };
 
 #endif // BITCOIN_TXDB_H

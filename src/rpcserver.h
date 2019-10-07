@@ -206,7 +206,9 @@ extern UniValue getblocktemplate(const UniValue& params, bool fHelp);
 extern UniValue submitblock(const UniValue& params, bool fHelp);
 extern UniValue estimatefee(const UniValue& params, bool fHelp);
 extern UniValue estimatepriority(const UniValue& params, bool fHelp);
-
+extern UniValue getaddressmempool(const UniValue& params, bool fHelp);
+extern UniValue getaddresstxids(const UniValue& params, bool fHelp);
+extern UniValue getaddressbalance(const UniValue& params, bool fHelp);
 extern UniValue getnewaddress(const UniValue& params, bool fHelp); // in rpcwallet.cpp
 extern UniValue getaccountaddress(const UniValue& params, bool fHelp);
 extern UniValue getrawchangeaddress(const UniValue& params, bool fHelp);
@@ -240,6 +242,7 @@ extern UniValue encryptwallet(const UniValue& params, bool fHelp);
 extern UniValue getwalletinfo(const UniValue& params, bool fHelp);
 extern UniValue getblockchaininfo(const UniValue& params, bool fHelp);
 extern UniValue getnetworkinfo(const UniValue& params, bool fHelp);
+extern UniValue getaddressutxos(const UniValue& params, bool fHelp);
 extern UniValue reservebalance(const UniValue& params, bool fHelp);
 extern UniValue setstakesplitthreshold(const UniValue& params, bool fHelp);
 extern UniValue getstakesplitthreshold(const UniValue& params, bool fHelp);
@@ -275,6 +278,7 @@ extern UniValue signrawtransaction(const UniValue& params, bool fHelp);
 extern UniValue sendrawtransaction(const UniValue& params, bool fHelp);
 
 extern UniValue findserial(const UniValue& params, bool fHelp); // in rpcblockchain.cpp
+extern UniValue getblockhashes(const UniValue& params, bool fHelp);
 extern UniValue getblockcount(const UniValue& params, bool fHelp);
 extern UniValue getbestblockhash(const UniValue& params, bool fHelp);
 extern UniValue getdifficulty(const UniValue& params, bool fHelp);

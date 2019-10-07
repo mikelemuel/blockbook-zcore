@@ -4,8 +4,11 @@
 
 #include "leveldbwrapper.h"
 
-#include "util.h"
 
+#include "util.h"
+#include "random.h"
+
+#include <boost/scoped_ptr.hpp>
 #include <boost/filesystem.hpp>
 
 #include <leveldb/cache.h>
@@ -43,7 +46,7 @@ static leveldb::Options GetOptions(size_t nCacheSize)
     return options;
 }
 
-CLevelDBWrapper::CLevelDBWrapper(const boost::filesystem::path& path, size_t nCacheSize, bool fMemory, bool fWipe)
+CLevelDBWrapper::CLevelDBWrapper(const boost::filesystem::path& path, size_t nCacheSize, bool fMemory, bool fWipe, bool obfuscate)
 {
     penv = NULL;
     readoptions.verify_checksums = true;
@@ -66,6 +69,27 @@ CLevelDBWrapper::CLevelDBWrapper(const boost::filesystem::path& path, size_t nCa
     leveldb::Status status = leveldb::DB::Open(options, path.string(), &pdb);
     HandleError(status);
     LogPrintf("Opened LevelDB successfully\n");
+
+
+
+    // The base-case obfuscation key, which is a noop.
+    obfuscate_key = std::vector<unsigned char>(OBFUSCATE_KEY_NUM_BYTES, '\000');
+
+    bool key_exists = Read(OBFUSCATE_KEY_KEY, obfuscate_key);
+
+    if (!key_exists && obfuscate && IsEmpty()) {
+        // Initialize non-degenerate obfuscation if it won't upset
+        // existing, non-obfuscated data.
+        std::vector<unsigned char> new_key = CreateObfuscateKey();
+
+        // Write `new_key` so we don't obfuscate the key with itself
+        Write(OBFUSCATE_KEY_KEY, new_key);
+        obfuscate_key = new_key;
+
+        LogPrintf("Wrote new obfuscate key for %s: %s\n", path.string(), GetObfuscateKeyHex());
+    }
+
+    LogPrintf("Using obfuscation key for %s: %s\n", path.string(), GetObfuscateKeyHex());
 }
 
 CLevelDBWrapper::~CLevelDBWrapper()
@@ -80,9 +104,55 @@ CLevelDBWrapper::~CLevelDBWrapper()
     options.env = NULL;
 }
 
+
+// Prefixed with null character to avoid collisions with other keys
+//
+// We must use a string constructor which specifies length so that we copy
+// past the null-terminator.
+const std::string CLevelDBWrapper::OBFUSCATE_KEY_KEY("\000obfuscate_key", 14);
+
+const unsigned int CLevelDBWrapper::OBFUSCATE_KEY_NUM_BYTES = 8;
+
+
+/**
+ * Returns a string (consisting of 8 random bytes) suitable for use as an
+ * obfuscating XOR key.
+ */
+std::vector<unsigned char> CLevelDBWrapper::CreateObfuscateKey() const
+{
+    unsigned char buff[OBFUSCATE_KEY_NUM_BYTES];
+    GetRandBytes(buff, OBFUSCATE_KEY_NUM_BYTES);
+    return std::vector<unsigned char>(&buff[0], &buff[OBFUSCATE_KEY_NUM_BYTES]);
+
+}
+
+
+bool CLevelDBWrapper::IsEmpty()
+{
+    boost::scoped_ptr<CLevelDBIterator> it(NewIterator());
+    it->SeekToFirst();
+    return !(it->Valid());
+}
+
+const std::vector<unsigned char>& CLevelDBWrapper::GetObfuscateKey() const
+{
+    return obfuscate_key;
+}
+
+std::string CLevelDBWrapper::GetObfuscateKeyHex() const
+{
+    return HexStr(obfuscate_key);
+}
+
+
 bool CLevelDBWrapper::WriteBatch(CLevelDBBatch& batch, bool fSync) throw(leveldb_error)
 {
     leveldb::Status status = pdb->Write(fSync ? syncoptions : writeoptions, &batch.batch);
     HandleError(status);
     return true;
 }
+
+CLevelDBIterator::~CLevelDBIterator() { delete piter; }
+bool CLevelDBIterator::Valid() { return piter->Valid(); }
+void CLevelDBIterator::SeekToFirst() { piter->SeekToFirst(); }
+void CLevelDBIterator::Next() { piter->Next(); }
