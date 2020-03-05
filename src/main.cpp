@@ -1326,7 +1326,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransa
             }
 
             // Check that zZCRmints are not already known
-            if (tx.IsZerocoinMint()) {
+            /*if (tx.IsZerocoinMint()) {
                 for (auto& out : tx.vout) {
                     if (!out.IsZerocoinMint())
                         continue;
@@ -1338,7 +1338,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransa
                     if (!ContextualCheckZerocoinMint(tx, coin, chainActive.Tip()))
                         return state.Invalid(error("%s: zerocoin mint failed contextual check", __func__));
                 }
-            }
+            }*/
 
             // are the actual inputs available?
             if (!view.HaveInputs(tx))
@@ -2855,7 +2855,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
             }
 
             // Check that zZCRmints are not already known
-            if (tx.IsZerocoinMint()) {
+            /*if (tx.IsZerocoinMint()) {
                 for (auto& out : tx.vout) {
                     if (!out.IsZerocoinMint())
                         continue;
@@ -2869,7 +2869,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
                     vMints.emplace_back(make_pair(coin, tx.GetHash()));
                 }
-            }
+            }*/
         } else if (!tx.IsCoinBase()) {
             if (!view.HaveInputs(tx))
                 return state.DoS(100, error("ConnectBlock() : inputs missing/spent"),
@@ -2884,7 +2884,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
             }
 
             // Check that zZCRmints are not already known
-            if (tx.IsZerocoinMint()) {
+            /*if (tx.IsZerocoinMint()) {
                 for (auto& out : tx.vout) {
                     if (!out.IsZerocoinMint())
                         continue;
@@ -2898,7 +2898,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
                     vMints.emplace_back(make_pair(coin, tx.GetHash()));
                 }
-            }
+            }*/
 
 
 
